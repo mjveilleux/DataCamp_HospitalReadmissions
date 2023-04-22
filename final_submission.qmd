@@ -1,0 +1,288 @@
+---
+title: "Predicting Hospital Readmissions: A DataCamp Competition Submission"
+author: "Mason Veilleux"
+editor: visual
+format:
+  html:
+    toc: true
+    toc-location: left
+    code-fold: true
+    code-summary: "Show the code"
+    
+---
+
+---
+margin-right: TRUE
+---
+
+# Intro
+
+I submitted to a DataCamp Competition and I wanted to share with you all the work I did. The prompt was to predict hospital readmissions with the data provided. The data was based on this [paper (Strack (2014))](https://pubmed.ncbi.nlm.nih.gov/24804245/).
+
+They also gave us questions to answer. The overview provides a summary of the questions and what I did to answer the questions. Also, if it's still running, check out the [Shiny App](https://mveilleux.shinyapps.io/hospital_comp_shiny_app/) I made for this project.
+
+The main results were not what I initially expected. At first I was focusing on classification and getting the best cross-validated prediction of readmissions. I tried both an out-of-the-box random forest which had a mean squared error of 24%. I was not happy with that result so I went with a more high-powered classification model which was a stacked ensemble produced using H2o. H2o is an incredibly powerful and easy to use tool for getting the best model to fit your data. However, even with some feature engineering, I still could not get higher than a 65% cross-validated AUC. Other papers like [Davis et al. (2022)](https://bmchealthservres.biomedcentral.com/articles/10.1186/s12913-022-08748-y) and [Zaghir et al. (2020)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8982755/) get better predictions at around 80% AUC but it is unclear which AUC they shared.
+
+This lack of precision is also common throughout other health care related prediction such as intra-day emergency room visits (see [Jessup et al. (2012)](http://dx.doi.org/10.1136/emj.2010.103531). A future blog post will focus on this but my initial thought is that these events occur from kurtotic, fat-tailed probability distributions. These distributions make it difficult to capture risk, leaving the researcher with uncertainty (sometimes called "deep uncertainty"). Ultimately, hospitals -- and health systems at large -- need to be able to not only capture risk but also be able to hedge against uncertainty. Anyways, more on that in a later post. Back to the submission...
+
+Given the failures of getting \$ \hat{y}} = y\$, I instead focused on estimating a logistic regression's coefficients and making some arguments about the validity of their unbiasedness. After finishing the project, I learned that even if your model does not accurately predict your outcome, you can at least come away with knowing something about the effects of X and Y. Even if we cannot precisely predict when a patient will readmit, we still can be certain that diabetic patients are more likely to be readmitted than non-diabetic patients, and we can know precisely the probability difference is given the unbiased parameters. Anyways, this was a fun project to work on to help me think through the many steps of modeling from (1) how do I model my outcome, (2) how do I know this is correct, and (3) how do I deploy this model in a way that can help this hypothetical hospital make better, targeted follow-ups on high-risk patients.
+
+# Overview
+
+This report provides insight on patient readmissions by answering three questions:
+
+1\. What is the most common primary diagnosis by age group?
+
+2\. Some doctors believe diabetes might play a central role in readmission. What is the effect of a diabetes diagnosis on readmission rates?
+
+3\. On what groups of patients should the hospital focus their follow-up efforts to better monitor patients with a high probability of readmission?
+
+To summarize the results of this report:
+
+1\. I find that circulatory ailments are the most common diagnosis for most age groups, making up more than 30% of the primary diagnoses of those 50 and older.
+
+2\. To estimate the effect of diabetes on readmits, I use a logistic regression model and control for patient characteristics, medical provision, and, secondary and tertiary diagnoses. I find that a patient with diabetes as a primary diagnosis has a 55.7% higher probability of being readmitted compared to someone whose primary diagnosis was not diabetes, holding the above groups constant.
+
+3\. I identify the groups most at-risk of readmit. I find that the groups with the highest probability of re-admittance are those who have a high number of inpatient and/or outpatient visits in the previous year, those aged between 60 and 90, and those who are diabetic. To put this information into practice, I made a [Shiny App](https://mveilleux.shinyapps.io/hospital_comp_shiny_app/) that gives the hospital the tools to optimize their follow-ups on these high readmit-probability patients. This app would allow the hospital to have a higher return on reducing readmit by targeting these high probability patients.
+
+# The Data
+
+Let's load in our data
+
+```{r, warning=FALSE, echo=FALSE, include=FALSE}
+library(tidyverse, quietly = TRUE)
+library(rmarkdown, quietly = TRUE)
+library(sandwich)
+library(stargazer)
+```
+
+```{r}
+# read in data
+df <- readr::read_csv('hospital_readmissions.csv', show_col_types = FALSE)
+DT::datatable(head(df))
+```
+
+# Q1: What is the most common primary diagnosis by age group?
+
+```{r, warning=FALSE, message=F}
+
+df %>%
+  filter(diag_1 != 'Missing',
+         diag_2 != 'Missing',
+         diag_3 != 'Missing') %>% 
+  select(age,diag_1) %>%
+  group_by(age,diag_1) %>% 
+  summarise(diag_count = length(diag_1)) %>% 
+  ungroup() %>% 
+  group_by(age) %>% 
+  mutate(diag_share = round(diag_count/sum(diag_count),3 ) ) %>% 
+  rename(Age = age,
+         `Primary Diagnosis` = diag_1,
+         `Diagnosis Share` = diag_share) %>% 
+  group_by(Age) %>% 
+  filter(`Diagnosis Share` == max(`Diagnosis Share`)) %>% 
+  select(-diag_count) %>% 
+  mutate(`Diagnosis Share` = paste(round(`Diagnosis Share`*100),'%')) %>% 
+  paged_table()
+```
+
+Clearly, Circulatory diagnoses are the most common \-- making up about a third of each age group's diagnoses. To give an idea of the breakdown of primary diagnoses, I share a plot that gives, by age group, the share of each primary diagnosis.
+
+```{r, warning=FALSE, message=F}
+
+# plot 
+p<- df %>%
+  filter(diag_1 != 'Missing') %>% 
+  select(age,diag_1) %>%
+  group_by(age,diag_1) %>% 
+  summarise(diag_count = length(diag_1)) %>% 
+  ungroup() %>% 
+  group_by(age) %>% 
+  mutate(diag_share = round(diag_count/sum(diag_count),3 ) ) %>% 
+  rename(Age = age,
+         `Primary Diagnosis` = diag_1,
+         `Diagnosis Share` = diag_share) %>% 
+  ggplot(aes(Age,`Diagnosis Share`, fill = `Primary Diagnosis`, text = paste("Diagnosis Share:",paste(`Diagnosis Share`*100,'%'))))+geom_bar(stat = 'identity')+theme_minimal()+
+  scale_y_continuous(labels = scales::percent)+ ggtitle('Shares of Primary Diagnoses by Age')
+
+
+plotly::ggplotly(p, tooltip= c('x','text','fill')) 
+```
+
+Clearly Circulatory and Other diagnoses are the most common diagnosis for all age groups \-- making up about 50% in total. Let's move to the second question.
+
+# Q2: Some doctors believe diabetes might play a central role in readmission. Explore the effect of a diabetes diagnosis on readmission rates
+
+To answer this question, I use several specifications of a logistic regression model to estimate the effect of a diabetes diagnosis on readmission rates. The logistic regression model suits the use-case as it provides a clear interpretation of the propensity for readmit by each covariety and is simple to implement in practice.
+
+Below is a table of the different estimators, each column is a different specification and each row is a covariate. If the covariate is a categorical variable, we can report the log-odds as that compared to the reference group. Here is a list of the categorical variables and their reference groups.
+
+List of Reference Groups for each Categorical Variable:
+
+-   diag_1 : `non-Diabetic\`
+
+-   diag_2 : `non-Diabetic`
+
+-   diag_3 : `non-Diabetic`
+
+-   Age : `[40-50)`
+
+-   Medical Specialty : `Family/GeneralPractice`
+
+-   glucose_test : `no`
+
+-   A1Ctest: `no`
+
+-   change: `no`
+
+-   diabetes_med : `no`
+
+To further simplify the interpretation, I convert the diagnoses variables to be either Diabetic or non-Diabetic. In this case, doctors can compare the average non-diabetic patient with the average diabetic patient making it a simpler calcuation (instead of, for example, comparing the diabetic patient to a Circulatory patient).
+
+Let's check out the estimators:
+
+```{r, warning=FALSE, message=F}
+# prep the data for logistic regressions
+df_features <- df %>% 
+  filter(diag_1 != 'Missing',
+         diag_2 != 'Missing',
+         diag_3 != 'Missing',
+         medical_specialty != 'Missing') %>% 
+  mutate(readmitted = ifelse(readmitted == 'yes',1,0),
+         time_in_hospital_sq = time_in_hospital^2,
+         n_medications_dummy = ifelse(n_medications < 50,1,0),
+         n_medications_sq = n_medications^2,
+         n_medications_cube = n_medications^3,
+         n_inpatient_sq = n_inpatient^2
+         ) %>% 
+  mutate(diag_1 = ifelse(diag_1 == 'Diabetes',1,0), # to make the contrast diabetic diagnosis vs all others
+         diag_2 = ifelse(diag_2 == 'Diabetes',1,0),
+         diag_3 = ifelse(diag_3 == 'Diabetes',1,0)) %>% 
+  mutate(A1Ctest = factor(A1Ctest, levels = c("no", "normal", "high")), # refactoring for clear interpreation of reference 
+         glucose_test =factor(glucose_test, levels = c("no", "normal", "high")),
+        age = factor(age, levels = c("[40-50)","[50-60)" ,"[60-70)","[70-80)" ,"[80-90)","[90-100)" )),
+        medical_specialty = factor(medical_specialty, levels = c('Family/GeneralPractice', 'Cardiology','Emergency/Trauma','InternalMedicine', 'Surgery', 'Other' )))
+
+# add series of specifications and print out with stargazer
+
+
+# logistic regression models
+
+# solo
+fit1 <- glm(data = df_features,readmitted ~ diag_1, family='binomial') 
+
+# other diagnoses
+fit2 <- glm(data = df_features,readmitted ~ diag_1+ diag_2 + diag_3, family='binomial') 
+
+# with patient characteristics
+fit3 <-  glm(data = df_features,readmitted ~ diag_1+ diag_2 + diag_3+age +n_outpatient + 
+               n_inpatient+n_emergency, family='binomial')
+
+# with hospital attendance characteristics
+fit4 <- glm(data = df_features,readmitted ~ diag_1+ diag_2 + diag_3+age +n_outpatient + 
+              n_inpatient+n_emergency+n_procedures+ n_lab_procedures+ medical_specialty+diabetes_med+glucose_test+A1Ctest+change, family='binomial')
+
+# all variables with interactions for non-linearities
+fit5 <- glm(data = df_features,readmitted ~ diag_1+ diag_2 + diag_3+  age + n_procedures+n_outpatient + n_inpatient +n_emergency+ n_inpatient_sq +n_lab_procedures+medical_specialty+diabetes_med+glucose_test+A1Ctest+change, 
+            family='binomial') 
+
+# make model list to input into se option in stargazer
+model.lst = list(fit1,fit2,fit3,fit4,fit5)
+
+stargazer::stargazer(fit1,fit2,fit3,fit4,fit5,
+        digits = 2,
+        se=lapply(model.lst, function(x) sqrt(diag(vcovHC(x, type = "HC1")))),# heteroskedastic-consistent standard errors 
+        type = 'text')
+```
+
+## Model Specifications and Initial Results
+
+There are five specifications that include groups of controls. The first specification is only interested in whether or not the patient's primary diagnosis was Diabetes. The second specification adds in the secondary and tertiary diagnoses. The third specification includes patient characteristics outside of their visit. This includes patient age, number of inpatient, outpatient, and emergency visits in the past year. The fourth specification includes medical goods and services consumed during the patient's visit. This includes the number of procedures, lab procedures, the type of specialty of the overseeing physician, medication changes or administration, and other tests for the severity of diabetes. The fifth specification adds some non-linearity that were observed in the data exploring process.
+
+We can see that having a primary diagnosis of diabetes has a positive effect on being readmitted to the hospital throughout each of the specifications. The severity of a readmit is diminished when controlling for patient characteristics. It is further reduced when medical provisions are given to the patient. Regardless, the readmit effect is still strong with a log odds ratio of 23% (55.7% probability) in the fourth and fifth specifications. Each model's standard errors are consistent against heteroskedasticity.
+
+## Interpreting the Results
+
+Regardless of what is done in the hospital, the patient's characteristics, and other diagnoses, primary diagnosis diabetic patients are still more likely to be readmitted than non-diabetic patients. We see that after controlling for patient characteristics, secondary and tertiary diagnoses have, on average, no effect on readmission rates. This result allows the hospital to focus squarely on the primary diagnosis as an indicator for re-admittance.
+
+We can also see that the patient's age plays a significant role in readmits. As age increases, we see that the readmit rate is higher than those in the reference group (Ages 40-49). Note, that the relative probability of readmit has an upside-down U-shape. This upside-down U-shape can be attributed to selection bias in the data. The story goes like this: those who take worse care of themselves will likely die at a younger age than those who do. Re-admittance is a result, in part, of not maintaining a sufficient stock of health capital. As the hospital observes more older patients, these patients tend to be those who can better maintain themselves through investments in their health capital. This is because those who would readmit, have died off. Further analysis requires a model that explains patient behavior and readmit. In sum, the upside-down U-shape is driven by this selection bias.
+
+We can also see that a patient with more previous encounters will have a higher probability of readmit. Inpatient visits have a higher propensity than both outpatient and emergency visits. This may be because inpatient visits treat chronic care while outpatient and emergency visits are for more acute care. Chronic care may just be harder to manage for patients than acute care which could be a reason why inpatient encounters give a higher propensity to readmit. Further, another reason for the difference could be that acute encounters "scares" patients into making better investments in there health while Chronic encounters do not force these patients to change their health investment.
+
+The attending physician's medical specialty also plays a large role in if a patient is readmitted. More severe encounters (i.e Surgery or Internal Medicine) reduce the probability of readmit. This could be another case where the type of doctor or encounter "scares" the patient into making better health investments. To argue this case: patients often substitute emergency visits for primary care (Family Medicine). Therefore, if the severity is the same for both type of visits, then there is no difference in readmit probability. Therefore, the "scare" interpretation may fit the data well. Further, it could also be that the differences in medical specialty is due to propensities for follow-up. An ER/Family Medicine physician may not care much about follow up than a Surgeon, for example.
+
+Last to note, the medical provisions related to diabetes have strong effects on readmits. A normal glucose test positively increases the probability of readmit. We can also see that if someone was prescribed diabetes medication, then they will likely readmit. This signals that the severity of the diabetes is so high that it requires more chronic care. Maintaining chronic care is difficult for diabetic patients.
+
+## Other specifications and models considered: Shifting from $\hat{y}$ to $\hat{\beta}$
+
+The main objective in this report is to maximize interpretability. That being said, there are other models and specifications that could be used to better predict the probability distribution of readmits. For example, a tree-based method could account for other non-linearities not captured by the logistic regression.
+
+I test this hypothesis using an out-of-the-box Random Forest model and a more sophisticated stacked ensemble model using H2o's autoML function. I find that the Random Forest model produces a mean squared error of 24% and the stacked ensemble gave an AUC of 65%. These poor results demonstrate that we cannot predict readmissions with the covariates available. However, there is still hope. Since the logistic regression provides parameters, we can focus on estimating unbiased and consistent parameters. We therefore can shift attention away from \$\\hat{y}\$ and focus instead on \$hat{beta}\$.
+
+This is what makes the logistic regression the better model: if our parameters are unbiased, we can at least explain the world we observe and everything outside our world has an average effect of 0. In this case, we do not care how much of our world we can explain given our observations if what we do observe we know to be true. The parameters of our model give us a good idea of the magnitude and direction of the covariates on readmissions and we believe that all else equal our error term, on average, has no effect on readmissions. Also, more practically, the parameters provide simple interpretation using log-odds which allows the hospital to heuristically assess a patients chance of admissions.
+
+## Summary and the Probability Distribution
+
+To summarise the models presented above, clearly a primary diagnosis of diabetes has a strong, postive effect on readmits per the doctor's hypothesis. We test this hypothesis using a logistic regression model and estimate using several, robust specifications. The results also yield interesting interpretations for the other covariates like Age and Medical Speciality. These interpretations hopefully provide more insight for the doctors to not just think about diabetic readmits, but readmits more generally.
+
+Now that we have a model that estimates the probability distribution (or propensity scores) of a patient being readmitted, we can observe this distribution. See below a plot of the probability distrbutions comparing those who had a primary diagnosis of Diabetes and those who did not. We can clearly see that there is a log-normal probability distribution for each and where the median diabetic patient has a higher probability of readmit (47.6% compared to 41.2%) (see table below the plot)
+
+Check it out:
+
+```{r, warning=FALSE}
+
+cbind(df_features, tibble(fit5$fitted.values)) %>% 
+  rename(fitted_prob = `fit5$fitted.values`) %>%
+mutate(diag_1 = ifelse(diag_1 == 1,'Diabetes','Non-Diabetes')) %>%
+ggplot(aes(x=fitted_prob, color = as.factor(diag_1), fill = as.factor(diag_1)))+
+geom_density(alpha = 0.25) +
+theme_minimal()+
+scale_fill_discrete(name = "Type of Diagnosis")+
+guides(color="none")+
+xlab('Predicted Probabilities of Readmit')+
+ylab('')+
+ggtitle('Densities of Probability Distributions by Type of Diagnosis')
+```
+
+# Q3: On what groups of patients should the hospital focus their follow-up efforts to better monitor patients with a high probability of readmission?
+
+We can see which groups have the largest, positive effect on readmissions by making a table of the coefficients. I also provide the probabily of readmission by group using a log odds- probability converter function. This "probitizes" the logistic regression results.
+
+```{r, warning=FALSE}
+
+# make function for converting log odds to probabilities
+ logit2prob <- function(logit){
+   odds <- exp(logit)
+   prob <- odds / (1 + odds)
+   return(prob)
+ }
+ 
+ # table getting the top coefficients, those groups that have the highest effect on readmission
+ summary(fit5)$coefficients %>% 
+   as.data.frame() %>%
+   mutate(z = round(abs(`z value`),3)) %>% 
+   filter(z >= 1.96, Estimate >0 ) %>% 
+   rownames_to_column(var = 'Coefficient Name') %>% 
+   tibble() %>% 
+   arrange(Estimate %>% desc()) %>% 
+   mutate(`Probitized Estimate` = round(logit2prob(Estimate),3),
+          Estimate = round(Estimate,3),
+          `Std. Error` = round(`Std. Error`,3),
+          `z value` = round(`z value`,3),
+          `Pr(>|z|)` = round(`Pr(>|z|)`,3)) %>% 
+select(-z) %>%
+   paged_table()
+
+```
+
+We can clearly see which groups are more likely to be readmitted. These are previous inpatient, outpatient and emergency encounters, diabetes related tests, and a primary diagnosis of diabetes tend to place the patient at a higher risk of readmittance.
+
+Now that we understand what groups are more likely to be readmitted, I'd like the hospital to have the tools to determine which of their current patients have a higher probability of readmit. Using the estimated parameters on each of the covariates,the hospital can input the observables of the patient and output the probability for each patient. You can now focus your follow-up efforts on those who need it the most!
+
+Further, I extended the model to include all types of diagnoses, not just Diabetes and non-Diabetes.
+
+Check out the Shiny App [here](https://mveilleux.shinyapps.io/hospital_comp_shiny_app/)
+
+# Wrapping Up
+
+Wrapping up, we now know what the most common diagnoses are, who are more likely to be readmitted, and what variables lead to higher readmission rates. I also provided a Shiny App that helps the hospital, in real time, determine who needs to be flagged for follow-up and who not to worry about. We also went over some modeling details and concluded that the logistic regression is the best approach for this use case -- though provided two other approaches the other might find useful for better estimation of the readmission probabilities. Overall, the hospital now has a actionable information and a cool new Shiny App!

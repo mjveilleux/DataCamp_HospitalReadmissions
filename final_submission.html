@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.189">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mason Veilleux">
+
+<title>Predicting Hospital Readmissions: A DataCamp Competition Submission</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="final_submission_files/libs/clipboard/clipboard.min.js"></script>
+<script src="final_submission_files/libs/quarto-html/quarto.js"></script>
+<script src="final_submission_files/libs/quarto-html/popper.min.js"></script>
+<script src="final_submission_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="final_submission_files/libs/quarto-html/anchor.min.js"></script>
+<link href="final_submission_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="final_submission_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="final_submission_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="final_submission_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="final_submission_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+<script src="final_submission_files/libs/htmlwidgets-1.6.1/htmlwidgets.js"></script>
+<link href="final_submission_files/libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+<script src="final_submission_files/libs/datatables-binding-0.27/datatables.js"></script>
+<script src="final_submission_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<link href="final_submission_files/libs/dt-core-1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
+<link href="final_submission_files/libs/dt-core-1.12.1/css/jquery.dataTables.extra.css" rel="stylesheet">
+<script src="final_submission_files/libs/dt-core-1.12.1/js/jquery.dataTables.min.js"></script>
+<link href="final_submission_files/libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet">
+<script src="final_submission_files/libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="final_submission_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="final_submission_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="final_submission_files/libs/plotly-binding-4.10.1/plotly.js"></script>
+<script src="final_submission_files/libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="final_submission_files/libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="final_submission_files/libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#intro" id="toc-intro" class="nav-link active" data-scroll-target="#intro">Intro</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">The Data</a></li>
+  <li><a href="#q1-what-is-the-most-common-primary-diagnosis-by-age-group" id="toc-q1-what-is-the-most-common-primary-diagnosis-by-age-group" class="nav-link" data-scroll-target="#q1-what-is-the-most-common-primary-diagnosis-by-age-group">Q1: What is the most common primary diagnosis by age group?</a></li>
+  <li><a href="#q2-some-doctors-believe-diabetes-might-play-a-central-role-in-readmission.-explore-the-effect-of-a-diabetes-diagnosis-on-readmission-rates" id="toc-q2-some-doctors-believe-diabetes-might-play-a-central-role-in-readmission.-explore-the-effect-of-a-diabetes-diagnosis-on-readmission-rates" class="nav-link" data-scroll-target="#q2-some-doctors-believe-diabetes-might-play-a-central-role-in-readmission.-explore-the-effect-of-a-diabetes-diagnosis-on-readmission-rates">Q2: Some doctors believe diabetes might play a central role in readmission. Explore the effect of a diabetes diagnosis on readmission rates</a>
+  <ul class="collapse">
+  <li><a href="#model-specifications-and-initial-results" id="toc-model-specifications-and-initial-results" class="nav-link" data-scroll-target="#model-specifications-and-initial-results">Model Specifications and Initial Results</a></li>
+  <li><a href="#interpreting-the-results" id="toc-interpreting-the-results" class="nav-link" data-scroll-target="#interpreting-the-results">Interpreting the Results</a></li>
+  <li><a href="#other-specifications-and-models-considered-shifting-from-haty-to-hatbeta" id="toc-other-specifications-and-models-considered-shifting-from-haty-to-hatbeta" class="nav-link" data-scroll-target="#other-specifications-and-models-considered-shifting-from-haty-to-hatbeta">Other specifications and models considered: Shifting from <span class="math inline">\(\hat{y}\)</span> to <span class="math inline">\(\hat{\beta}\)</span></a></li>
+  <li><a href="#summary-and-the-probability-distribution" id="toc-summary-and-the-probability-distribution" class="nav-link" data-scroll-target="#summary-and-the-probability-distribution">Summary and the Probability Distribution</a></li>
+  </ul></li>
+  <li><a href="#q3-on-what-groups-of-patients-should-the-hospital-focus-their-follow-up-efforts-to-better-monitor-patients-with-a-high-probability-of-readmission" id="toc-q3-on-what-groups-of-patients-should-the-hospital-focus-their-follow-up-efforts-to-better-monitor-patients-with-a-high-probability-of-readmission" class="nav-link" data-scroll-target="#q3-on-what-groups-of-patients-should-the-hospital-focus-their-follow-up-efforts-to-better-monitor-patients-with-a-high-probability-of-readmission">Q3: On what groups of patients should the hospital focus their follow-up efforts to better monitor patients with a high probability of readmission?</a></li>
+  <li><a href="#wrapping-up" id="toc-wrapping-up" class="nav-link" data-scroll-target="#wrapping-up">Wrapping Up</a></li>
+  </ul>
+</nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Predicting Hospital Readmissions: A DataCamp Competition Submission</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mason Veilleux </p>
+          </div>
+  </div>
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="intro" class="level1">
+<h1>Intro</h1>
+<p>I submitted to a DataCamp Competition and I wanted to share with you all the work I did. The prompt was to predict hospital readmissions with the data provided. The data was based on this <a href="https://pubmed.ncbi.nlm.nih.gov/24804245/">paper (Strack (2014))</a>.</p>
+<p>They also gave us questions to answer. The overview provides a summary of the questions and what I did to answer the questions. Also, if it’s still running, check out the <a href="https://mveilleux.shinyapps.io/hospital_comp_shiny_app/">Shiny App</a> I made for this project.</p>
+<p>The main results were not what I initially expected. At first I was focusing on classification and getting the best cross-validated prediction of readmissions. I tried both an out-of-the-box random forest which had a mean squared error of 24%. I was not happy with that result so I went with a more high-powered classification model which was a stacked ensemble produced using H2o. H2o is an incredibly powerful and easy to use tool for getting the best model to fit your data. However, even with some feature engineering, I still could not get higher than a 65% cross-validated AUC. Other papers like <a href="https://bmchealthservres.biomedcentral.com/articles/10.1186/s12913-022-08748-y">Davis et al.&nbsp;(2022)</a> and <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8982755/">Zaghir et al.&nbsp;(2020)</a> get better predictions at around 80% AUC but it is unclear which AUC they shared.</p>
+<p>This lack of precision is also common throughout other health care related prediction such as intra-day emergency room visits (see <a href="http://dx.doi.org/10.1136/emj.2010.103531">Jessup et al.&nbsp;(2012)</a>. A future blog post will focus on this but my initial thought is that these events occur from kurtotic, fat-tailed probability distributions. These distributions make it difficult to capture risk, leaving the researcher with uncertainty (sometimes called “deep uncertainty”). Ultimately, hospitals – and health systems at large – need to be able to not only capture risk but also be able to hedge against uncertainty. Anyways, more on that in a later post. Back to the submission…</p>
+<p>Given the failures of getting $ } = y$, I instead focused on estimating a logistic regression’s coefficients and making some arguments about the validity of their unbiasedness. After finishing the project, I learned that even if your model does not accurately predict your outcome, you can at least come away with knowing something about the effects of X and Y. Even if we cannot precisely predict when a patient will readmit, we still can be certain that diabetic patients are more likely to be readmitted than non-diabetic patients, and we can know precisely the probability difference is given the unbiased parameters. Anyways, this was a fun project to work on to help me think through the many steps of modeling from (1) how do I model my outcome, (2) how do I know this is correct, and (3) how do I deploy this model in a way that can help this hypothetical hospital make better, targeted follow-ups on high-risk patients.</p>
+</section>
+<section id="overview" class="level1">
+<h1>Overview</h1>
+<p>This report provides insight on patient readmissions by answering three questions:</p>
+<p>1. What is the most common primary diagnosis by age group?</p>
+<p>2. Some doctors believe diabetes might play a central role in readmission. What is the effect of a diabetes diagnosis on readmission rates?</p>
+<p>3. On what groups of patients should the hospital focus their follow-up efforts to better monitor patients with a high probability of readmission?</p>
+<p>To summarize the results of this report:</p>
+<p>1. I find that circulatory ailments are the most common diagnosis for most age groups, making up more than 30% of the primary diagnoses of those 50 and older.</p>
+<p>2. To estimate the effect of diabetes on readmits, I use a logistic regression model and control for patient characteristics, medical provision, and, secondary and tertiary diagnoses. I find that a patient with diabetes as a primary diagnosis has a 55.7% higher probability of being readmitted compared to someone whose primary diagnosis was not diabetes, holding the above groups constant.</p>
+<p>3. I identify the groups most at-risk of readmit. I find that the groups with the highest probability of re-admittance are those who have a high number of inpatient and/or outpatient visits in the previous year, those aged between 60 and 90, and those who are diabetic. To put this information into practice, I made a <a href="https://mveilleux.shinyapps.io/hospital_comp_shiny_app/">Shiny App</a> that gives the hospital the tools to optimize their follow-ups on these high readmit-probability patients. This app would allow the hospital to have a higher return on reducing readmit by targeting these high probability patients.</p>
+</section>
+<section id="the-data" class="level1">
+<h1>The Data</h1>
+<p>Let’s load in our data</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read in data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">'hospital_readmissions.csv'</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>DT<span class="sc">::</span><span class="fu">datatable</span>(<span class="fu">head</span>(df))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-e5c6683e3408565668ef" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-e5c6683e3408565668ef">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["[70-80)","[70-80)","[50-60)","[70-80)","[60-70)","[40-50)"],[8,3,5,2,1,2],[72,34,45,36,42,51],[1,2,0,0,0,0],[18,13,18,12,7,10],[2,0,0,1,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],["Missing","Other","Missing","Missing","InternalMedicine","Missing"],["Circulatory","Other","Circulatory","Circulatory","Other","Other"],["Respiratory","Other","Circulatory","Other","Circulatory","Other"],["Other","Other","Circulatory","Diabetes","Respiratory","Other"],["no","no","no","no","no","no"],["no","no","no","no","no","no"],["no","no","yes","yes","no","no"],["yes","yes","yes","yes","yes","no"],["no","no","yes","yes","no","yes"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>age<\/th>\n      <th>time_in_hospital<\/th>\n      <th>n_lab_procedures<\/th>\n      <th>n_procedures<\/th>\n      <th>n_medications<\/th>\n      <th>n_outpatient<\/th>\n      <th>n_inpatient<\/th>\n      <th>n_emergency<\/th>\n      <th>medical_specialty<\/th>\n      <th>diag_1<\/th>\n      <th>diag_2<\/th>\n      <th>diag_3<\/th>\n      <th>glucose_test<\/th>\n      <th>A1Ctest<\/th>\n      <th>change<\/th>\n      <th>diabetes_med<\/th>\n      <th>readmitted<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="q1-what-is-the-most-common-primary-diagnosis-by-age-group" class="level1">
+<h1>Q1: What is the most common primary diagnosis by age group?</h1>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diag_1 <span class="sc">!=</span> <span class="st">'Missing'</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>         diag_2 <span class="sc">!=</span> <span class="st">'Missing'</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>         diag_3 <span class="sc">!=</span> <span class="st">'Missing'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(age,diag_1) <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(age,diag_1) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">diag_count =</span> <span class="fu">length</span>(diag_1)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(age) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diag_share =</span> <span class="fu">round</span>(diag_count<span class="sc">/</span><span class="fu">sum</span>(diag_count),<span class="dv">3</span> ) ) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Age =</span> age,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Primary Diagnosis</span><span class="st">`</span> <span class="ot">=</span> diag_1,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span> <span class="ot">=</span> diag_share) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Age) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span> <span class="sc">==</span> <span class="fu">max</span>(<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>diag_count) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste</span>(<span class="fu">round</span>(<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span><span class="sc">*</span><span class="dv">100</span>),<span class="st">'%'</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paged_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Age"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Primary Diagnosis"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Diagnosis Share"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"[40-50)","2":"Other","3":"30 %"},{"1":"[50-60)","2":"Circulatory","3":"28 %"},{"1":"[60-70)","2":"Circulatory","3":"33 %"},{"1":"[70-80)","2":"Circulatory","3":"35 %"},{"1":"[80-90)","2":"Circulatory","3":"33 %"},{"1":"[90-100)","2":"Circulatory","3":"30 %"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Clearly, Circulatory diagnoses are the most common -- making up about a third of each age group’s diagnoses. To give an idea of the breakdown of primary diagnoses, I share a plot that gives, by age group, the share of each primary diagnosis.</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>p<span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diag_1 <span class="sc">!=</span> <span class="st">'Missing'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(age,diag_1) <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(age,diag_1) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">diag_count =</span> <span class="fu">length</span>(diag_1)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(age) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diag_share =</span> <span class="fu">round</span>(diag_count<span class="sc">/</span><span class="fu">sum</span>(diag_count),<span class="dv">3</span> ) ) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Age =</span> age,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Primary Diagnosis</span><span class="st">`</span> <span class="ot">=</span> diag_1,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span> <span class="ot">=</span> diag_share) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Age,<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">`</span><span class="at">Primary Diagnosis</span><span class="st">`</span>, <span class="at">text =</span> <span class="fu">paste</span>(<span class="st">"Diagnosis Share:"</span>,<span class="fu">paste</span>(<span class="st">`</span><span class="at">Diagnosis Share</span><span class="st">`</span><span class="sc">*</span><span class="dv">100</span>,<span class="st">'%'</span>))))<span class="sc">+</span><span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">'identity'</span>)<span class="sc">+</span><span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent)<span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">'Shares of Primary Diagnoses by Age'</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>plotly<span class="sc">::</span><span class="fu">ggplotly</span>(p, <span class="at">tooltip=</span> <span class="fu">c</span>(<span class="st">'x'</span>,<span class="st">'text'</span>,<span class="st">'fill'</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-49d93cb4222e22aaac94" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-49d93cb4222e22aaac94">{"x":{"data":[{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.8,0.717,0.668,0.651,0.671,0.696],"x":[1,2,3,4,5,6],"y":[0.199,0.282,0.332,0.35,0.328,0.304],"text":["Age: [40-50)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 19.9 %","Age: [50-60)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 28.2 %","Age: [60-70)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 33.2 %","Age: [70-80)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 35 %","Age: [80-90)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 32.8 %","Age: [90-100)<br />Primary Diagnosis: Circulatory<br />Diagnosis Share: 30.4 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Circulatory","legendgroup":"Circulatory","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.654,0.629,0.603,0.595,0.631,0.651],"x":[1,2,3,4,5,6],"y":[0.146,0.088,0.0649999999999999,0.056,0.04,0.0449999999999999],"text":["Age: [40-50)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 14.6 %","Age: [50-60)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 8.8 %","Age: [60-70)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 6.5 %","Age: [70-80)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 5.6 %","Age: [80-90)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 4 %","Age: [90-100)<br />Primary Diagnosis: Diabetes<br />Diagnosis Share: 4.5 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(196,154,0,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Diabetes","legendgroup":"Diabetes","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.547,0.53,0.509,0.509,0.542,0.551],"x":[1,2,3,4,5,6],"y":[0.107,0.099,0.094,0.086,0.089,0.1],"text":["Age: [40-50)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 10.7 %","Age: [50-60)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 9.9 %","Age: [60-70)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 9.4 %","Age: [70-80)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 8.6 %","Age: [80-90)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 8.9 %","Age: [90-100)<br />Primary Diagnosis: Digestive<br />Diagnosis Share: 10 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(83,180,0,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Digestive","legendgroup":"Digestive","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.483,0.469,0.441,0.444,0.471,0.463],"x":[1,2,3,4,5,6],"y":[0.0639999999999999,0.061,0.0680000000000001,0.065,0.071,0.088],"text":["Age: [40-50)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 6.4 %","Age: [50-60)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 6.1 %","Age: [60-70)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 6.8 %","Age: [70-80)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 6.5 %","Age: [80-90)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 7.1 %","Age: [90-100)<br />Primary Diagnosis: Injury<br />Diagnosis Share: 8.8 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(0,192,148,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Injury","legendgroup":"Injury","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.444,0.417,0.378,0.389,0.434,0.452],"x":[1,2,3,4,5,6],"y":[0.039,0.052,0.0629999999999999,0.055,0.037,0.011],"text":["Age: [40-50)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 3.9 %","Age: [50-60)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 5.2 %","Age: [60-70)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 6.3 %","Age: [70-80)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 5.5 %","Age: [80-90)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 3.7 %","Age: [90-100)<br />Primary Diagnosis: Musculoskeletal<br />Diagnosis Share: 1.1 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(0,182,235,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Musculoskeletal","legendgroup":"Musculoskeletal","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0.148,0.156,0.141,0.141,0.153,0.159],"x":[1,2,3,4,5,6],"y":[0.296,0.261,0.237,0.248,0.281,0.293],"text":["Age: [40-50)<br />Primary Diagnosis: Other<br />Diagnosis Share: 29.6 %","Age: [50-60)<br />Primary Diagnosis: Other<br />Diagnosis Share: 26.1 %","Age: [60-70)<br />Primary Diagnosis: Other<br />Diagnosis Share: 23.7 %","Age: [70-80)<br />Primary Diagnosis: Other<br />Diagnosis Share: 24.8 %","Age: [80-90)<br />Primary Diagnosis: Other<br />Diagnosis Share: 28.1 %","Age: [90-100)<br />Primary Diagnosis: Other<br />Diagnosis Share: 29.3 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(165,138,255,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Other","legendgroup":"Other","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0,0,0,0,0,0],"x":[1,2,3,4,5,6],"y":[0.148,0.156,0.141,0.141,0.153,0.159],"text":["Age: [40-50)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 14.8 %","Age: [50-60)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 15.6 %","Age: [60-70)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 14.1 %","Age: [70-80)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 14.1 %","Age: [80-90)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 15.3 %","Age: [90-100)<br />Primary Diagnosis: Respiratory<br />Diagnosis Share: 15.9 %"],"type":"bar","textposition":"none","marker":{"autocolorscale":false,"color":"rgba(251,97,215,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Respiratory","legendgroup":"Respiratory","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":43.7625570776256,"r":7.30593607305936,"b":40.1826484018265,"l":48.9497716894977},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Shares of Primary Diagnoses by Age","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.4,6.6],"tickmode":"array","ticktext":["[40-50)","[50-60)","[60-70)","[70-80)","[80-90)","[90-100)"],"tickvals":[1,2,3,4,5,6],"categoryorder":"array","categoryarray":["[40-50)","[50-60)","[60-70)","[70-80)","[80-90)","[90-100)"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"Age","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.05005,1.05105],"tickmode":"array","ticktext":["0%","25%","50%","75%","100%"],"tickvals":[0,0.25,0.5,0.75,1],"categoryorder":"array","categoryarray":["0%","25%","50%","75%","100%"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"Diagnosis Share","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"Primary Diagnosis","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"d28154a2b4b":{"x":{},"y":{},"fill":{},"text":{},"type":"bar"}},"cur_data":"d28154a2b4b","visdat":{"d28154a2b4b":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Clearly Circulatory and Other diagnoses are the most common diagnosis for all age groups -- making up about 50% in total. Let’s move to the second question.</p>
+</section>
+<section id="q2-some-doctors-believe-diabetes-might-play-a-central-role-in-readmission.-explore-the-effect-of-a-diabetes-diagnosis-on-readmission-rates" class="level1">
+<h1>Q2: Some doctors believe diabetes might play a central role in readmission. Explore the effect of a diabetes diagnosis on readmission rates</h1>
+<p>To answer this question, I use several specifications of a logistic regression model to estimate the effect of a diabetes diagnosis on readmission rates. The logistic regression model suits the use-case as it provides a clear interpretation of the propensity for readmit by each covariety and is simple to implement in practice.</p>
+<p>Below is a table of the different estimators, each column is a different specification and each row is a covariate. If the covariate is a categorical variable, we can report the log-odds as that compared to the reference group. Here is a list of the categorical variables and their reference groups.</p>
+<p>List of Reference Groups for each Categorical Variable:</p>
+<ul>
+<li><p>diag_1 : <code>non-Diabetic\</code></p></li>
+<li><p>diag_2 : <code>non-Diabetic</code></p></li>
+<li><p>diag_3 : <code>non-Diabetic</code></p></li>
+<li><p>Age : <code>[40-50)</code></p></li>
+<li><p>Medical Specialty : <code>Family/GeneralPractice</code></p></li>
+<li><p>glucose_test : <code>no</code></p></li>
+<li><p>A1Ctest: <code>no</code></p></li>
+<li><p>change: <code>no</code></p></li>
+<li><p>diabetes_med : <code>no</code></p></li>
+</ul>
+<p>To further simplify the interpretation, I convert the diagnoses variables to be either Diabetic or non-Diabetic. In this case, doctors can compare the average non-diabetic patient with the average diabetic patient making it a simpler calcuation (instead of, for example, comparing the diabetic patient to a Circulatory patient).</p>
+<p>Let’s check out the estimators:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prep the data for logistic regressions</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df_features <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diag_1 <span class="sc">!=</span> <span class="st">'Missing'</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>         diag_2 <span class="sc">!=</span> <span class="st">'Missing'</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>         diag_3 <span class="sc">!=</span> <span class="st">'Missing'</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>         medical_specialty <span class="sc">!=</span> <span class="st">'Missing'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">readmitted =</span> <span class="fu">ifelse</span>(readmitted <span class="sc">==</span> <span class="st">'yes'</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">time_in_hospital_sq =</span> time_in_hospital<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_medications_dummy =</span> <span class="fu">ifelse</span>(n_medications <span class="sc">&lt;</span> <span class="dv">50</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_medications_sq =</span> n_medications<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_medications_cube =</span> n_medications<span class="sc">^</span><span class="dv">3</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_inpatient_sq =</span> n_inpatient<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diag_1 =</span> <span class="fu">ifelse</span>(diag_1 <span class="sc">==</span> <span class="st">'Diabetes'</span>,<span class="dv">1</span>,<span class="dv">0</span>), <span class="co"># to make the contrast diabetic diagnosis vs all others</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">diag_2 =</span> <span class="fu">ifelse</span>(diag_2 <span class="sc">==</span> <span class="st">'Diabetes'</span>,<span class="dv">1</span>,<span class="dv">0</span>),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">diag_3 =</span> <span class="fu">ifelse</span>(diag_3 <span class="sc">==</span> <span class="st">'Diabetes'</span>,<span class="dv">1</span>,<span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">A1Ctest =</span> <span class="fu">factor</span>(A1Ctest, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"no"</span>, <span class="st">"normal"</span>, <span class="st">"high"</span>)), <span class="co"># refactoring for clear interpreation of reference </span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">glucose_test =</span><span class="fu">factor</span>(glucose_test, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"no"</span>, <span class="st">"normal"</span>, <span class="st">"high"</span>)),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">age =</span> <span class="fu">factor</span>(age, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"[40-50)"</span>,<span class="st">"[50-60)"</span> ,<span class="st">"[60-70)"</span>,<span class="st">"[70-80)"</span> ,<span class="st">"[80-90)"</span>,<span class="st">"[90-100)"</span> )),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">medical_specialty =</span> <span class="fu">factor</span>(medical_specialty, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'Family/GeneralPractice'</span>, <span class="st">'Cardiology'</span>,<span class="st">'Emergency/Trauma'</span>,<span class="st">'InternalMedicine'</span>, <span class="st">'Surgery'</span>, <span class="st">'Other'</span> )))</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co"># add series of specifications and print out with stargazer</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co"># logistic regression models</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co"># solo</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">data =</span> df_features,readmitted <span class="sc">~</span> diag_1, <span class="at">family=</span><span class="st">'binomial'</span>) </span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="co"># other diagnoses</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">data =</span> df_features,readmitted <span class="sc">~</span> diag_1<span class="sc">+</span> diag_2 <span class="sc">+</span> diag_3, <span class="at">family=</span><span class="st">'binomial'</span>) </span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co"># with patient characteristics</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span>  <span class="fu">glm</span>(<span class="at">data =</span> df_features,readmitted <span class="sc">~</span> diag_1<span class="sc">+</span> diag_2 <span class="sc">+</span> diag_3<span class="sc">+</span>age <span class="sc">+</span>n_outpatient <span class="sc">+</span> </span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>               n_inpatient<span class="sc">+</span>n_emergency, <span class="at">family=</span><span class="st">'binomial'</span>)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="co"># with hospital attendance characteristics</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>fit4 <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">data =</span> df_features,readmitted <span class="sc">~</span> diag_1<span class="sc">+</span> diag_2 <span class="sc">+</span> diag_3<span class="sc">+</span>age <span class="sc">+</span>n_outpatient <span class="sc">+</span> </span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>              n_inpatient<span class="sc">+</span>n_emergency<span class="sc">+</span>n_procedures<span class="sc">+</span> n_lab_procedures<span class="sc">+</span> medical_specialty<span class="sc">+</span>diabetes_med<span class="sc">+</span>glucose_test<span class="sc">+</span>A1Ctest<span class="sc">+</span>change, <span class="at">family=</span><span class="st">'binomial'</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="co"># all variables with interactions for non-linearities</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>fit5 <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">data =</span> df_features,readmitted <span class="sc">~</span> diag_1<span class="sc">+</span> diag_2 <span class="sc">+</span> diag_3<span class="sc">+</span>  age <span class="sc">+</span> n_procedures<span class="sc">+</span>n_outpatient <span class="sc">+</span> n_inpatient <span class="sc">+</span>n_emergency<span class="sc">+</span> n_inpatient_sq <span class="sc">+</span>n_lab_procedures<span class="sc">+</span>medical_specialty<span class="sc">+</span>diabetes_med<span class="sc">+</span>glucose_test<span class="sc">+</span>A1Ctest<span class="sc">+</span>change, </span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>            <span class="at">family=</span><span class="st">'binomial'</span>) </span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a><span class="co"># make model list to input into se option in stargazer</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>model.lst <span class="ot">=</span> <span class="fu">list</span>(fit1,fit2,fit3,fit4,fit5)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>stargazer<span class="sc">::</span><span class="fu">stargazer</span>(fit1,fit2,fit3,fit4,fit5,</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>        <span class="at">se=</span><span class="fu">lapply</span>(model.lst, <span class="cf">function</span>(x) <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcovHC</span>(x, <span class="at">type =</span> <span class="st">"HC1"</span>)))),<span class="co"># heteroskedastic-consistent standard errors </span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">'text'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===================================================================================
+                                                 Dependent variable:               
+                                  -------------------------------------------------
+                                                     readmitted                    
+                                     (1)       (2)       (3)       (4)       (5)   
+-----------------------------------------------------------------------------------
+diag_1                             0.28***   0.24***   0.24***   0.23***   0.23*** 
+                                   (0.07)    (0.07)    (0.08)    (0.08)    (0.08)  
+                                                                                   
+diag_2                                      -0.15***    -0.03     -0.02     -0.02  
+                                             (0.06)    (0.06)    (0.06)    (0.06)  
+                                                                                   
+diag_3                                        -0.08     -0.02     -0.02     -0.01  
+                                             (0.05)    (0.05)    (0.05)    (0.05)  
+                                                                                   
+age[50-60)                                              -0.04     -0.05     -0.05  
+                                                       (0.07)    (0.07)    (0.07)  
+                                                                                   
+age[60-70)                                              0.12*     0.11      0.10   
+                                                       (0.07)    (0.07)    (0.07)  
+                                                                                   
+age[70-80)                                             0.20***   0.18***   0.18*** 
+                                                       (0.07)    (0.07)    (0.07)  
+                                                                                   
+age[80-90)                                             0.16**     0.13*     0.12   
+                                                       (0.07)    (0.07)    (0.07)  
+                                                                                   
+age[90-100)                                             -0.07     -0.10     -0.11  
+                                                       (0.12)    (0.12)    (0.12)  
+                                                                                   
+n_outpatient                                           0.13***   0.13***   0.13*** 
+                                                       (0.03)    (0.03)    (0.03)  
+                                                                                   
+n_inpatient                                            0.41***   0.41***   0.52*** 
+                                                       (0.02)    (0.02)    (0.03)  
+                                                                                   
+n_emergency                                            0.21***   0.19***   0.19*** 
+                                                       (0.06)    (0.05)    (0.05)  
+                                                                                   
+n_inpatient_sq                                                            -0.03*** 
+                                                                           (0.01)  
+                                                                                   
+n_procedures                                                      0.001     0.002  
+                                                                 (0.01)    (0.01)  
+                                                                                   
+n_lab_procedures                                                 0.003**   0.003** 
+                                                                 (0.001)   (0.001) 
+                                                                                   
+medical_specialtyCardiology                                       -0.02     -0.02  
+                                                                 (0.08)    (0.08)  
+                                                                                   
+medical_specialtyEmergency/Trauma                                 0.03      0.03   
+                                                                 (0.07)    (0.07)  
+                                                                                   
+medical_specialtyInternalMedicine                               -0.18***  -0.18*** 
+                                                                 (0.06)    (0.06)  
+                                                                                   
+medical_specialtySurgery                                        -0.28***  -0.28*** 
+                                                                 (0.08)    (0.08)  
+                                                                                   
+medical_specialtyOther                                          -0.24***  -0.25*** 
+                                                                 (0.06)    (0.06)  
+                                                                                   
+diabetes_medyes                                                  0.24***   0.24*** 
+                                                                 (0.05)    (0.05)  
+                                                                                   
+glucose_testnormal                                               0.24**    0.25**  
+                                                                 (0.11)    (0.11)  
+                                                                                   
+glucose_testhigh                                                  0.12      0.11   
+                                                                 (0.12)    (0.12)  
+                                                                                   
+A1Ctestnormal                                                    -0.20**   -0.19** 
+                                                                 (0.10)    (0.10)  
+                                                                                   
+A1Ctesthigh                                                      -0.13**   -0.13** 
+                                                                 (0.06)    (0.06)  
+                                                                                   
+changeyes                                                         0.05      0.05   
+                                                                 (0.04)    (0.04)  
+                                                                                   
+Constant                          -0.20***  -0.17***  -0.60***  -0.77***  -0.78*** 
+                                   (0.02)    (0.02)    (0.06)    (0.10)    (0.10)  
+                                                                                   
+-----------------------------------------------------------------------------------
+Observations                       12,465    12,465    12,465    12,465    12,465  
+Log Likelihood                    -8,579.04 -8,574.67 -8,197.76 -8,151.74 -8,143.91
+Akaike Inf. Crit.                 17,162.08 17,157.33 16,419.53 16,353.49 16,339.83
+===================================================================================
+Note:                                                   *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+</div>
+<section id="model-specifications-and-initial-results" class="level2">
+<h2 class="anchored" data-anchor-id="model-specifications-and-initial-results">Model Specifications and Initial Results</h2>
+<p>There are five specifications that include groups of controls. The first specification is only interested in whether or not the patient’s primary diagnosis was Diabetes. The second specification adds in the secondary and tertiary diagnoses. The third specification includes patient characteristics outside of their visit. This includes patient age, number of inpatient, outpatient, and emergency visits in the past year. The fourth specification includes medical goods and services consumed during the patient’s visit. This includes the number of procedures, lab procedures, the type of specialty of the overseeing physician, medication changes or administration, and other tests for the severity of diabetes. The fifth specification adds some non-linearity that were observed in the data exploring process.</p>
+<p>We can see that having a primary diagnosis of diabetes has a positive effect on being readmitted to the hospital throughout each of the specifications. The severity of a readmit is diminished when controlling for patient characteristics. It is further reduced when medical provisions are given to the patient. Regardless, the readmit effect is still strong with a log odds ratio of 23% (55.7% probability) in the fourth and fifth specifications. Each model’s standard errors are consistent against heteroskedasticity.</p>
+</section>
+<section id="interpreting-the-results" class="level2">
+<h2 class="anchored" data-anchor-id="interpreting-the-results">Interpreting the Results</h2>
+<p>Regardless of what is done in the hospital, the patient’s characteristics, and other diagnoses, primary diagnosis diabetic patients are still more likely to be readmitted than non-diabetic patients. We see that after controlling for patient characteristics, secondary and tertiary diagnoses have, on average, no effect on readmission rates. This result allows the hospital to focus squarely on the primary diagnosis as an indicator for re-admittance.</p>
+<p>We can also see that the patient’s age plays a significant role in readmits. As age increases, we see that the readmit rate is higher than those in the reference group (Ages 40-49). Note, that the relative probability of readmit has an upside-down U-shape. This upside-down U-shape can be attributed to selection bias in the data. The story goes like this: those who take worse care of themselves will likely die at a younger age than those who do. Re-admittance is a result, in part, of not maintaining a sufficient stock of health capital. As the hospital observes more older patients, these patients tend to be those who can better maintain themselves through investments in their health capital. This is because those who would readmit, have died off. Further analysis requires a model that explains patient behavior and readmit. In sum, the upside-down U-shape is driven by this selection bias.</p>
+<p>We can also see that a patient with more previous encounters will have a higher probability of readmit. Inpatient visits have a higher propensity than both outpatient and emergency visits. This may be because inpatient visits treat chronic care while outpatient and emergency visits are for more acute care. Chronic care may just be harder to manage for patients than acute care which could be a reason why inpatient encounters give a higher propensity to readmit. Further, another reason for the difference could be that acute encounters “scares” patients into making better investments in there health while Chronic encounters do not force these patients to change their health investment.</p>
+<p>The attending physician’s medical specialty also plays a large role in if a patient is readmitted. More severe encounters (i.e Surgery or Internal Medicine) reduce the probability of readmit. This could be another case where the type of doctor or encounter “scares” the patient into making better health investments. To argue this case: patients often substitute emergency visits for primary care (Family Medicine). Therefore, if the severity is the same for both type of visits, then there is no difference in readmit probability. Therefore, the “scare” interpretation may fit the data well. Further, it could also be that the differences in medical specialty is due to propensities for follow-up. An ER/Family Medicine physician may not care much about follow up than a Surgeon, for example.</p>
+<p>Last to note, the medical provisions related to diabetes have strong effects on readmits. A normal glucose test positively increases the probability of readmit. We can also see that if someone was prescribed diabetes medication, then they will likely readmit. This signals that the severity of the diabetes is so high that it requires more chronic care. Maintaining chronic care is difficult for diabetic patients.</p>
+</section>
+<section id="other-specifications-and-models-considered-shifting-from-haty-to-hatbeta" class="level2">
+<h2 class="anchored" data-anchor-id="other-specifications-and-models-considered-shifting-from-haty-to-hatbeta">Other specifications and models considered: Shifting from <span class="math inline">\(\hat{y}\)</span> to <span class="math inline">\(\hat{\beta}\)</span></h2>
+<p>The main objective in this report is to maximize interpretability. That being said, there are other models and specifications that could be used to better predict the probability distribution of readmits. For example, a tree-based method could account for other non-linearities not captured by the logistic regression.</p>
+<p>I test this hypothesis using an out-of-the-box Random Forest model and a more sophisticated stacked ensemble model using H2o’s autoML function. I find that the Random Forest model produces a mean squared error of 24% and the stacked ensemble gave an AUC of 65%. These poor results demonstrate that we cannot predict readmissions with the covariates available. However, there is still hope. Since the logistic regression provides parameters, we can focus on estimating unbiased and consistent parameters. We therefore can shift attention away from $\hat{y}$ and focus instead on $hat{beta}$.</p>
+<p>This is what makes the logistic regression the better model: if our parameters are unbiased, we can at least explain the world we observe and everything outside our world has an average effect of 0. In this case, we do not care how much of our world we can explain given our observations if what we do observe we know to be true. The parameters of our model give us a good idea of the magnitude and direction of the covariates on readmissions and we believe that all else equal our error term, on average, has no effect on readmissions. Also, more practically, the parameters provide simple interpretation using log-odds which allows the hospital to heuristically assess a patients chance of admissions.</p>
+</section>
+<section id="summary-and-the-probability-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="summary-and-the-probability-distribution">Summary and the Probability Distribution</h2>
+<p>To summarise the models presented above, clearly a primary diagnosis of diabetes has a strong, postive effect on readmits per the doctor’s hypothesis. We test this hypothesis using a logistic regression model and estimate using several, robust specifications. The results also yield interesting interpretations for the other covariates like Age and Medical Speciality. These interpretations hopefully provide more insight for the doctors to not just think about diabetic readmits, but readmits more generally.</p>
+<p>Now that we have a model that estimates the probability distribution (or propensity scores) of a patient being readmitted, we can observe this distribution. See below a plot of the probability distrbutions comparing those who had a primary diagnosis of Diabetes and those who did not. We can clearly see that there is a log-normal probability distribution for each and where the median diabetic patient has a higher probability of readmit (47.6% compared to 41.2%) (see table below the plot)</p>
+<p>Check it out:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(df_features, <span class="fu">tibble</span>(fit5<span class="sc">$</span>fitted.values)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">fitted_prob =</span> <span class="st">`</span><span class="at">fit5$fitted.values</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="at">diag_1 =</span> <span class="fu">ifelse</span>(diag_1 <span class="sc">==</span> <span class="dv">1</span>,<span class="st">'Diabetes'</span>,<span class="st">'Non-Diabetes'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>fitted_prob, <span class="at">color =</span> <span class="fu">as.factor</span>(diag_1), <span class="at">fill =</span> <span class="fu">as.factor</span>(diag_1)))<span class="sc">+</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Type of Diagnosis"</span>)<span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">guides</span>(<span class="at">color=</span><span class="st">"none"</span>)<span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">xlab</span>(<span class="st">'Predicted Probabilities of Readmit'</span>)<span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ylab</span>(<span class="st">''</span>)<span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtitle</span>(<span class="st">'Densities of Probability Distributions by Type of Diagnosis'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="final_submission_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="q3-on-what-groups-of-patients-should-the-hospital-focus-their-follow-up-efforts-to-better-monitor-patients-with-a-high-probability-of-readmission" class="level1">
+<h1>Q3: On what groups of patients should the hospital focus their follow-up efforts to better monitor patients with a high probability of readmission?</h1>
+<p>We can see which groups have the largest, positive effect on readmissions by making a table of the coefficients. I also provide the probabily of readmission by group using a log odds- probability converter function. This “probitizes” the logistic regression results.</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make function for converting log odds to probabilities</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a> logit2prob <span class="ot">&lt;-</span> <span class="cf">function</span>(logit){</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>   odds <span class="ot">&lt;-</span> <span class="fu">exp</span>(logit)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>   prob <span class="ot">&lt;-</span> odds <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> odds)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>   <span class="fu">return</span>(prob)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a> }</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a> <span class="co"># table getting the top coefficients, those groups that have the highest effect on readmission</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a> <span class="fu">summary</span>(fit5)<span class="sc">$</span>coefficients <span class="sc">%&gt;%</span> </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>   <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">z =</span> <span class="fu">round</span>(<span class="fu">abs</span>(<span class="st">`</span><span class="at">z value</span><span class="st">`</span>),<span class="dv">3</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(z <span class="sc">&gt;=</span> <span class="fl">1.96</span>, Estimate <span class="sc">&gt;</span><span class="dv">0</span> ) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>   <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">'Coefficient Name'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">tibble</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>   <span class="fu">arrange</span>(Estimate <span class="sc">%&gt;%</span> <span class="fu">desc</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Probitized Estimate</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">logit2prob</span>(Estimate),<span class="dv">3</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">Estimate =</span> <span class="fu">round</span>(Estimate,<span class="dv">3</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>          <span class="st">`</span><span class="at">Std. Error</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Std. Error</span><span class="st">`</span>,<span class="dv">3</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>          <span class="st">`</span><span class="at">z value</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">z value</span><span class="st">`</span>,<span class="dv">3</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>          <span class="st">`</span><span class="at">Pr(&gt;|z|)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Pr(&gt;|z|)</span><span class="st">`</span>,<span class="dv">3</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(<span class="sc">-</span>z) <span class="sc">%&gt;%</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>   <span class="fu">paged_table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Coefficient Name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Estimate"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Std. Error"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["z value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>|z|)"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Probitized Estimate"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"n_inpatient","2":"0.516","3":"0.032","4":"15.933","5":"0.000","6":"0.626"},{"1":"glucose_testnormal","2":"0.245","3":"0.112","4":"2.179","5":"0.029","6":"0.561"},{"1":"diabetes_medyes","2":"0.237","3":"0.052","4":"4.533","5":"0.000","6":"0.559"},{"1":"diag_1","2":"0.228","3":"0.077","4":"2.961","5":"0.003","6":"0.557"},{"1":"n_emergency","2":"0.191","3":"0.034","4":"5.665","5":"0.000","6":"0.548"},{"1":"age[70-80)","2":"0.178","3":"0.069","4":"2.568","5":"0.010","6":"0.544"},{"1":"n_outpatient","2":"0.129","3":"0.023","4":"5.559","5":"0.000","6":"0.532"},{"1":"n_lab_procedures","2":"0.003","3":"0.001","4":"2.448","5":"0.014","6":"0.501"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>We can clearly see which groups are more likely to be readmitted. These are previous inpatient, outpatient and emergency encounters, diabetes related tests, and a primary diagnosis of diabetes tend to place the patient at a higher risk of readmittance.</p>
+<p>Now that we understand what groups are more likely to be readmitted, I’d like the hospital to have the tools to determine which of their current patients have a higher probability of readmit. Using the estimated parameters on each of the covariates,the hospital can input the observables of the patient and output the probability for each patient. You can now focus your follow-up efforts on those who need it the most!</p>
+<p>Further, I extended the model to include all types of diagnoses, not just Diabetes and non-Diabetes.</p>
+<p>Check out the Shiny App <a href="https://mveilleux.shinyapps.io/hospital_comp_shiny_app/">here</a></p>
+</section>
+<section id="wrapping-up" class="level1">
+<h1>Wrapping Up</h1>
+<p>Wrapping up, we now know what the most common diagnoses are, who are more likely to be readmitted, and what variables lead to higher readmission rates. I also provided a Shiny App that helps the hospital, in real time, determine who needs to be flagged for follow-up and who not to worry about. We also went over some modeling details and concluded that the logistic regression is the best approach for this use case – though provided two other approaches the other might find useful for better estimation of the readmission probabilities. Overall, the hospital now has a actionable information and a cool new Shiny App!</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
